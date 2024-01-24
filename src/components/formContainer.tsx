@@ -27,12 +27,13 @@ const FormContainer = () => {
     const [govIdType, setGovIdType] = useState('');
 
     const schema = Yup.object().shape({
-        name: Yup.string().min(3).required("Required, Min 3 characters"),
-        age: Yup.number().positive().required("Required Postive Number"),
+        name: Yup.string().min(3, "Required, Min 3 characters").required("Kindly Enter the name"),
+        age: Yup.number().positive("Age should be positive").required("Please enter the age"),
         sex: Yup.string(),
-        mobile: Yup.number(),
+        mobile: Yup.number().positive("Mobile number should be positive").min(10, "Mobile should be 10 digits"),
         gov_id_type: Yup.string(),
-        gov_id: Yup.string(),
+        aadhar_card: Yup.number().positive("Aadhar should be positive").min(12, "Aadhar Number must be of 12 digits"),
+        pan_card: Yup.string().length(10, "Pan Number must be of 10 digits"),
         address: Yup.string(),
         state: Yup.string(),
         city: Yup.string(),
@@ -46,8 +47,9 @@ const FormContainer = () => {
             age: 1,
             sex: "male",
             mobile: 0,
-            gov_id_type: "",
-            gov_id: "",
+            gov_id_type: "aadhar card",
+            aadhar_card: 0,
+            pan_card: "0000000000",
             address: "",
             state: "",
             city: "",
@@ -70,14 +72,17 @@ const FormContainer = () => {
 
 
     const onSubmit = handleSubmit((data) => {
-        console.log("ran")
         console.log(data)
+        if (activeStep === 0) {
+            console.log("inside")
+            setActiveStep((prevActiveStep) => prevActiveStep + 1);
+        }
     })
 
 
     const handleNext = () => {
         onSubmit()
-        setActiveStep((prevActiveStep) => prevActiveStep + 1);
+        console.log(activeStep)
     };
 
     const handleBack = () => {
@@ -127,10 +132,11 @@ const FormContainer = () => {
             )}
 
 
-            <form className="form" onSubmit={onSubmit}>
+            <div className="form" >
 
                 <Box
                     component="form"
+                    onSubmit={onSubmit}
                     sx={{
                         '& > :not(style)': { m: 2, width: '35ch' },
                         display: "grid",
@@ -142,25 +148,29 @@ const FormContainer = () => {
                     {
                         (activeStep === 0) && (
                             <>
-                                <TextField
-                                    label="Name"
-                                    required
-                                    id='standard-error-helper-text'
-                                    variant="outlined"
-                                    {...register("name")}
-                                // error={errors.name}
-                                />
-                                {errors.name && (
-                                    <p style={{ color: 'red' }}>{errors.name.message}</p>
-                                )}
 
-                                <TextField
-                                    label="age"
-                                    required
-                                    type='number'
-                                    variant="outlined"
-                                    {...register("age")}
-                                />
+                                <FormControl>
+                                    <TextField
+                                        label="Name"
+                                        required
+                                        variant="outlined"
+                                        {...register('name')}
+                                        error={!!errors.name}
+                                        helperText={errors.name?.message || ''}
+                                    />
+                                </FormControl>
+
+                                <FormControl>
+                                    <TextField
+                                        label="Age"
+                                        required
+                                        type='number'
+                                        variant="outlined"
+                                        {...register('age')}
+                                        error={!!errors.age}
+                                        helperText={errors.age?.message || ''}
+                                    />
+                                </FormControl>
 
                                 <FormControl fullWidth>
                                     <InputLabel id="demo-simple-select-label">Sex</InputLabel>
@@ -176,11 +186,17 @@ const FormContainer = () => {
                                     </Select>
                                 </FormControl>
 
-                                <TextField
-                                    label="Mobile"
-                                    type='number'
-                                    {...register("mobile")}
-                                />
+                                <FormControl>
+                                    <TextField
+                                        label="Mobile Number"
+                                        required
+                                        type='number'
+                                        variant="outlined"
+                                        {...register('mobile')}
+                                        error={!!errors.mobile}
+                                        helperText={errors.mobile?.message || ''}
+                                    />
+                                </FormControl>
 
                                 <FormControl fullWidth>
                                     <InputLabel id="demo-simple-select-label">Goverment Id Type</InputLabel>
@@ -199,22 +215,34 @@ const FormContainer = () => {
 
                                 {
                                     (govIdType === "aadhar card") && (
-                                        <TextField
-                                            label="Enter 12 digits Aadhar Number"
-                                            required
-                                            {...register("gov_id")}
-                                        />
+
+                                        <FormControl>
+                                            <TextField
+                                                label="Aadhar Card Number"
+                                                required
+                                                variant="outlined"
+                                                type='number'
+                                                {...register('aadhar_card')}
+                                                error={!!errors.aadhar_card}
+                                                helperText={errors.aadhar_card?.message || ''}
+                                            />
+                                        </FormControl>
                                     )
                                 }
 
 
                                 {
                                     (govIdType === "pan card") && (
-                                        <TextField
-                                            label="Enter 10 digits Pan Number"
-                                            required
-                                            {...register("gov_id")}
-                                        />
+                                        <FormControl>
+                                            <TextField
+                                                label="Pan Card Number"
+                                                required
+                                                variant="outlined"
+                                                {...register('pan_card')}
+                                                error={!!errors.pan_card}
+                                                helperText={errors.pan_card?.message || ''}
+                                            />
+                                        </FormControl>
                                     )
                                 }
                             </>
@@ -226,18 +254,15 @@ const FormContainer = () => {
                         (activeStep === 1) && (
                             <>
                                 <TextField
-                                    required
                                     label="Address"
                                     {...register("address")}
                                 />
 
                                 <TextField
-                                    required
                                     label="State"
                                     {...register("state")}
                                 />
                                 <TextField
-                                    required
                                     label="City"
                                     {...register("city")}
                                 />
@@ -251,7 +276,7 @@ const FormContainer = () => {
                                 />
 
                                 <TextField
-                                    required
+                                    type='number'
                                     label="PinCode"
                                     {...register("pincode")}
                                 />
@@ -261,7 +286,7 @@ const FormContainer = () => {
                     }
                 </Box>
 
-            </form>
+            </div>
 
             <Box sx={{ display: 'flex', flexDirection: 'row', pt: 2, justifyContent: "space-between" }}>
                 <Button
@@ -274,13 +299,13 @@ const FormContainer = () => {
                 </Button>
 
                 {
-                    activeStep === 1 ? (
+                    activeStep === 0 ? (
                         <Button onClick={handleNext}>
                             Next
                         </Button>
                     ) : (
                         <Button type='submit' onClick={onSubmit}>
-                            Next
+                            Finish
                         </Button>
                     )
                 }
