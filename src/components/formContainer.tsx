@@ -15,8 +15,11 @@ import MenuItem from '@mui/material/MenuItem';
 import FormControl from '@mui/material/FormControl';
 import Select, { SelectChangeEvent } from '@mui/material/Select';
 import { getCountries } from '../utils/getCoutriesName';
-import { Autocomplete } from '@mui/material';
+import { Autocomplete, FormHelperText } from '@mui/material';
 import '../styles/form.css'
+import { useDispatch } from 'react-redux';
+import { addUser } from '../store/reducers/reducer';
+import { useNavigate } from 'react-router-dom';
 
 const steps = ['Personal Details', 'Address Details'];
 
@@ -25,13 +28,15 @@ const FormContainer = () => {
     const [gender, setGender] = useState('');
     const [countries, setCountries] = useState<any>([])
     const [govIdType, setGovIdType] = useState('');
+    const dispatch = useDispatch()
+    const navigate = useNavigate()
 
     const schema = Yup.object().shape({
         name: Yup.string().min(3, "Required, Min 3 characters").required("Kindly Enter the name"),
         age: Yup.number().positive("Age should be positive").required("Please enter the age"),
-        sex: Yup.string(),
+        sex: Yup.string().required("Please select a valid gender"),
         mobile: Yup.number().positive("Mobile number should be positive").min(10, "Mobile should be 10 digits"),
-        gov_id_type: Yup.string(),
+        gov_id_type: Yup.string().required("Please select one option"),
         aadhar_card: Yup.number().positive("Aadhar should be positive").min(12, "Aadhar Number must be of 12 digits"),
         pan_card: Yup.string().length(10, "Pan Number must be of 10 digits"),
         address: Yup.string(),
@@ -74,15 +79,16 @@ const FormContainer = () => {
     const onSubmit = handleSubmit((data) => {
         console.log(data)
         if (activeStep === 0) {
-            console.log("inside")
             setActiveStep((prevActiveStep) => prevActiveStep + 1);
+        } else {
+            dispatch(addUser(data))
+            navigate("/table")
         }
     })
 
 
     const handleNext = () => {
         onSubmit()
-        console.log(activeStep)
     };
 
     const handleBack = () => {
@@ -172,18 +178,20 @@ const FormContainer = () => {
                                     />
                                 </FormControl>
 
-                                <FormControl fullWidth>
-                                    <InputLabel id="demo-simple-select-label">Sex</InputLabel>
+                                <FormControl fullWidth required>
+                                    <InputLabel id="demo-simple-select-error-label" error={!!errors.sex}>Sex</InputLabel>
                                     <Select
-                                        labelId="demo-simple-select-label"
+                                        labelId="demo-simple-select-error-label"
                                         value={gender}
                                         label="Sex"
                                         {...register("sex")}
                                         onChange={handleChange}
+                                        error={!!errors.sex}
                                     >
                                         <MenuItem value="male">Male</MenuItem>
                                         <MenuItem value="female">Female</MenuItem>
                                     </Select>
+                                    <FormHelperText>{errors.sex?.message || ''}</FormHelperText>
                                 </FormControl>
 
                                 <FormControl>
@@ -270,9 +278,8 @@ const FormContainer = () => {
                                     disablePortal
                                     id="controllable-states-demo"
                                     options={countries}
-                                    {...register("country")}
                                     sx={{ width: 300 }}
-                                    renderInput={(params) => <TextField {...params} label="Country" />}
+                                    renderInput={(params) => <TextField {...params} {...register("country")} label="Country" />}
                                 />
 
                                 <TextField
